@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from inspect import isclass
+from itertools import chain
 from types import UnionType
 from typing import Any, Collection, Iterable, Literal, get_args
 
 from pydantic import BaseModel
 
+from ticklist import tick_annotations as ta
 from ticklist.field_data import (
     FieldData,
+    FieldDataForBooleanValue,
     FieldDataForEnumValue,
     FieldDataForInt,
     FieldDataForLiteralValue,
@@ -18,6 +22,8 @@ from ticklist.field_data import (
     FieldDataForString,
 )
 from ticklist.types import AnnotationIterator
+
+_logger = logging.getLogger(__name__)
 
 
 class StringAndLiteralAnnotationNotAllowed(Exception):
@@ -56,6 +62,7 @@ def field_data_from_annotation(
     value: Any,
     default: Any,
     annotation_iterators: Collection[AnnotationIterator],
+    metadata: list[Any],
 ) -> tuple[FieldData, ...]:
     """Extract FieldData objects from annotation information.
 
@@ -72,8 +79,12 @@ def field_data_from_annotation(
     Returns:
         _description_
     """
+    _tick_annotations = ta.to_tick_annotations(metadata)
+
     field_data = tuple(
-        _iter_over_annotation(annotation, key, value, default, annotation_iterators)
+        _iter_over_annotation(
+            annotation, key, value, default, annotation_iterators, _tick_annotations
+        )
     )
 
     _field_data_types = set((fd.__class__ for fd in field_data))
@@ -85,49 +96,90 @@ def field_data_from_annotation(
 
 
 def bool_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
-) -> Iterable[Any]:
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[Any, ta.TickAnnotations]]:
     """Yield values for a boolean annotation."""
     if annotation is bool:
-        yield "True"
-        yield "False"
+        _logger.debug("annotation: Bool %s", annotation)
+        yield (
+            FieldDataForBooleanValue.parse("True", key, value, default, metadata),
+            metadata,
+        )
+        yield (
+            FieldDataForBooleanValue.parse("False", key, value, default, metadata),
+            metadata,
+        )
 
 
 def enum_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
-) -> Iterable[Any]:
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[Any, ta.TickAnnotations]]:
     """Yield values for an enum annotation."""
     if isclass(annotation) and issubclass(annotation, Enum):
+        _logger.debug("annotation: Enum class %s", annotation)
         for anno in annotation:
-            yield anno
+            yield anno, metadata
 
 
 def enum_item_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
-) -> Iterable[FieldDataForEnumValue]:
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[FieldDataForEnumValue, ta.TickAnnotations]]:
     """Yield value for an individual enum item."""
     if isinstance(annotation, Enum):
-        yield FieldDataForEnumValue.parse(annotation, key, value, default)
+        _logger.debug("annotation: Enum value %s", annotation)
+        yield (
+            FieldDataForEnumValue.parse(annotation, key, value, default, metadata),
+            metadata,
+        )
 
 
 def str_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
-) -> Iterable[FieldDataForString]:
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[FieldDataForString, ta.TickAnnotations]]:
     """Yield value for a string annotation."""
     if isclass(annotation) and issubclass(annotation, str):
-        yield FieldDataForString.parse(annotation, key, value, default)
+        _logger.debug("annotation: str %s", annotation)
+        yield (
+            FieldDataForString.parse(annotation, key, value, default, metadata),
+            metadata,
+        )
 
 
 def int_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
-) -> Iterable[FieldDataForInt]:
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[FieldDataForInt, ta.TickAnnotations]]:
     """Yield value of an int annotation."""
     if isclass(annotation) and issubclass(annotation, int):
-        yield FieldDataForInt.parse(annotation, key, value, default)
+        _logger.debug("annotation: Int %s", annotation)
+        yield FieldDataForInt.parse(annotation, key, value, default, metadata), metadata
 
 
 def union_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
 ) -> Iterable[Any]:
     """Yield values for a union annotation."""
     # Nowadays Unions are created using the pipe | character, where earlier
@@ -140,38 +192,78 @@ def union_type_iterator(
     # This at least appears when a Literal type is involved. This might change
     # in future python version, but for now, this union check looks for both
     # union styles.
-    if isinstance(annotation, UnionType):
-        yield from get_args(annotation)
-    elif getattr(annotation, "__name__", None) in ("Optional", "Union"):
-        yield from get_args(annotation)
+    if isinstance(annotation, UnionType) or getattr(annotation, "__name__", None) in (
+        "Optional",
+        "Union",
+    ):
+        _logger.debug("annotation: Union %s", annotation)
+        for arg in get_args(annotation):
+            yield arg, metadata
 
 
 def model_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
 ) -> Iterable[Any]:
     """Yield value for a pydantic BaseModel annotation."""
     if isclass(annotation) and issubclass(annotation, BaseModel):
-        yield FieldDataForModel.parse(annotation, key, value, default)
+        _logger.debug("annotation: Basemodel %s", annotation)
+        yield FieldDataForModel.parse(annotation, key, value, default, metadata), None
 
 
 def literal_type_iterator(
-    annotation: Any, key: str, value: Any, default: Any
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
 ) -> Iterable[Any]:
     """Yield values for a Literal annotation."""
     origin = getattr(annotation, "__origin__", None)
     if origin is Literal:
-        yield from get_args(annotation)
+        _logger.debug("annotation: Literal definition %s", annotation)
+        for arg in get_args(annotation):
+            yield arg, metadata
 
 
 def literal_value_iterator(
-    annotation: Any, key: str, value: Any, default: Any
-) -> Iterable[FieldDataForLiteralValue]:
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[FieldDataForLiteralValue, ta.TickAnnotations]]:
     """Yield values for a Literal Value annotation."""
     if isinstance(annotation, str):
-        yield FieldDataForLiteralValue.parse(annotation, key, value, default)
+        _logger.debug("annotation: Literal value %s", annotation)
+        yield (
+            FieldDataForLiteralValue.parse(annotation, key, value, default, metadata),
+            metadata,
+        )
+
+
+def annotated_iterator(
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[Any, ta.TickAnnotations]]:
+    """Yield values defined inside an annotation."""
+    nm = getattr(annotation, "__name__", None)
+    if nm == "Annotated":
+        _anno = annotation.__origin__
+
+        _meta = metadata | ta.to_tick_annotations(annotation.__metadata__)
+
+        yield _anno, _meta
 
 
 ANNOTATION_ITERATORS: tuple[AnnotationIterator, ...] = (
+    annotated_iterator,
     bool_type_iterator,
     enum_type_iterator,
     enum_item_type_iterator,
@@ -190,6 +282,7 @@ def _iter_over_annotation(
     value: Any,
     default: Any,
     annotation_iterators: Collection[AnnotationIterator],
+    metadata: ta.TickAnnotations,
 ) -> Iterable[FieldData]:
     if isinstance(annotation, FieldData):
         yield annotation
@@ -197,10 +290,12 @@ def _iter_over_annotation(
     else:
         found = False
         for annotation_iterator in annotation_iterators:
-            for _annotation in annotation_iterator(annotation, key, value, default):
+            for _annotation, meta in annotation_iterator(
+                annotation, key, value, default, metadata=metadata
+            ):
                 found = True
                 yield from _iter_over_annotation(
-                    _annotation, key, value, default, annotation_iterators
+                    _annotation, key, value, default, annotation_iterators, meta
                 )
             if found:
                 break

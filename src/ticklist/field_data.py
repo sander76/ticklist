@@ -8,11 +8,13 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, Self
+from typing import Any, Literal, Self
+from xmlrpc.client import boolean
 
 from pydantic import BaseModel
 from typing_extensions import override
 
+from ticklist import tick_annotations as ta
 from ticklist.field_widgets import (
     FieldWidget,
     FieldWidgetForFixedValue,
@@ -63,6 +65,7 @@ class FieldData(metaclass=ABCMeta):
         key: str,
         value: Any,
         default: Any,
+        metadata: ta.TickAnnotations,
     ) -> Self:
         """Return FieldData object(s) based on provided data.
 
@@ -71,6 +74,7 @@ class FieldData(metaclass=ABCMeta):
             key: the field (key) for this annotation.
             value: An optional value.
             default: An optional default.
+            metadata: Any information provided with the `Annotated` type annotation.
         """
 
     @staticmethod
@@ -186,6 +190,7 @@ class FieldDataForString(FieldData):
         key: str,
         value: Any,
         default: Any,
+        metadata: ta.TickAnnotations,
     ) -> Self:
         def _check(value: Any, annotation: Any) -> bool:
             return isinstance(value, annotation)
@@ -217,6 +222,7 @@ class FieldDataForInt(FieldData):
         key: str,
         value: Any,
         default: Any,
+        metadata: ta.TickAnnotations,
     ) -> Self:
         def _check(value: Any, annotation: Any) -> bool:
             return isinstance(value, annotation)
@@ -252,6 +258,7 @@ class FieldDataForEnumValue(FieldData):
         key: str,
         value: Any,
         default: Any,
+        metadata: ta.TickAnnotations,
     ) -> Self:
         def check(value: Any, annotation: Any) -> bool:
             if value == annotation:
@@ -288,6 +295,7 @@ class FieldDataForLiteralValue(FieldData):
         key: str,
         value: Any,
         default: Any,
+        metadata: ta.TickAnnotations,
     ) -> Self:
         def check(value: Any, annotation: Any) -> bool:
             if value == annotation:
@@ -301,6 +309,47 @@ class FieldDataForLiteralValue(FieldData):
             value=annotation,
             active=_active,
             label=annotation,
+        )
+
+
+class FieldDataForBooleanValue(FieldData):
+    """Field data for a boolean value."""
+
+    @property
+    def field_widget(self) -> type[FieldWidget]:
+        """Associated FieldWidget."""
+        return FieldWidgetForFixedValue
+
+    @override
+    @classmethod
+    def parse(
+        cls,
+        annotation: Literal["True", "False"],
+        key: str,
+        value: Any,
+        default: Any,
+        metadata: ta.TickAnnotations,
+    ) -> Self:
+        def check(value: Any, annotation: Any) -> bool:
+            if value == annotation:
+                return True
+            return False
+
+        _, _active = cls._evaluate_values(annotation, default, value, check)
+
+        label: str = annotation
+        if boolean_label := metadata.get("boolean_labels", None):
+            if annotation == "True":
+                label = boolean_label.label_for_true
+            else:
+                label = boolean_label.label_for_false
+
+        return cls(
+            annotation=annotation,
+            key=key,
+            value=annotation,
+            active=_active,
+            label=label,
         )
 
 
@@ -320,9 +369,15 @@ class FieldDataForModel(FieldData):
         key: str,
         value: Any,
         default: Any,
+        metadata: ta.TickAnnotations,
     ) -> Self:
         def _check(value: Any, annotation: type[BaseModel]) -> bool:
             return isinstance(value, annotation)
 
+        if label_data := metadata.get("label"):
+            label = label_data.value
+        else:
+            label = "define"
+
         _value, _active = cls._evaluate_values(annotation, default, value, check=_check)
-        return cls(annotation, key=key, value=_value, active=_active, label="define")
+        return cls(annotation, key=key, value=_value, active=_active, label=label)

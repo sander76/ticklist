@@ -1,13 +1,12 @@
-from typing import Type
 
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Button
+
+from demo.models import MyCar
 from ticklist import form
 from ticklist.annotation_iterators import ANNOTATION_ITERATORS
 from ticklist.types import NO_VALUE
-
-from demo.models import MyCar
 
 
 class MyApp(App):

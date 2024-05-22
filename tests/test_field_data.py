@@ -1,8 +1,11 @@
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
 import pytest
 from pydantic import BaseModel
+
+from tests.conftest import compare_items
+from ticklist import tick_annotations as ta
 from ticklist.annotation_iterators import (
     ANNOTATION_ITERATORS,
     StringAndLiteralAnnotationNotAllowed,
@@ -10,6 +13,7 @@ from ticklist.annotation_iterators import (
 )
 from ticklist.field_data import (
     FieldData,
+    FieldDataForBooleanValue,
     FieldDataForEnumValue,
     FieldDataForInt,
     FieldDataForLiteralValue,
@@ -17,8 +21,6 @@ from ticklist.field_data import (
     FieldDataForString,
 )
 from ticklist.types import NO_VALUE
-
-from tests.conftest import compare_items
 
 
 def test_find_match_fail():
@@ -29,6 +31,7 @@ def test_find_match_fail():
             value=NO_VALUE,
             default=NO_VALUE,
             annotation_iterators=[],
+            metadata={},
         )  # type: ignore
 
 
@@ -76,6 +79,7 @@ def test_field_data_for_string():
             value=NO_VALUE,
             default=field_info.default,
             annotation_iterators=ANNOTATION_ITERATORS,
+            metadata={},
         )
     )
 
@@ -105,6 +109,7 @@ def test_field_data_for_int():
             value=NO_VALUE,
             default=field_info.default,
             annotation_iterators=ANNOTATION_ITERATORS,
+            metadata={},
         )
     )
 
@@ -138,6 +143,7 @@ def test_field_data_for_enum():
             value=NO_VALUE,
             default=field_info.default,
             annotation_iterators=ANNOTATION_ITERATORS,
+            metadata={},
         )
     )
 
@@ -169,6 +175,7 @@ def test_field_data_for_new_style_union():
         value=NO_VALUE,
         default=field_info.default,
         annotation_iterators=ANNOTATION_ITERATORS,
+        metadata={},
     )
 
     compare_items(
@@ -202,6 +209,7 @@ def test_field_data_for_old_style_union():
         value=NO_VALUE,
         default=field_info.default,
         annotation_iterators=ANNOTATION_ITERATORS,
+        metadata={},
     )
 
     compare_items(
@@ -234,12 +242,49 @@ def test_field_data_for_model():
         value=NO_VALUE,
         default=field_info.default,
         annotation_iterators=ANNOTATION_ITERATORS,
+        metadata={},
     )
 
     compare_items(
         items,
         FieldDataForModel(
             SubModel, key=key, value=NO_VALUE, active=False, label="define"
+        ),
+    )
+
+
+def test_field_data_union_with_models():
+    class SubModel1(BaseModel):
+        my_value: str
+
+    class SubModel2(BaseModel):
+        my_value: str
+
+    class Model(BaseModel):
+        model: (
+            Annotated[SubModel1, ta.Label("submodel 1")]
+            | Annotated[SubModel2, ta.Label("submodel 2")]
+        )
+
+    key = "model"
+    field_info = Model.model_fields[key]
+
+    items = field_data_from_annotation(
+        annotation=field_info.annotation,
+        key=key,
+        value=NO_VALUE,
+        default=field_info.default,
+        annotation_iterators=ANNOTATION_ITERATORS,
+        metadata=field_info.metadata,
+    )
+
+    compare_items(
+        items,
+        FieldDataForModel(
+            SubModel1, key=key, value=NO_VALUE, active=False, label="submodel 1"
+        ),
+        FieldDataForModel(
+            SubModel2, key=key, value=NO_VALUE, active=False, label="submodel 2"
         ),
     )
 
@@ -256,6 +301,7 @@ def test_field_data_for_literal():
         value=NO_VALUE,
         default=field_info.default,
         annotation_iterators=ANNOTATION_ITERATORS,
+        metadata=[],
     )
 
     compare_items(
@@ -277,15 +323,42 @@ def test_field_data_for_boolean():
         value=NO_VALUE,
         default=field_info.default,
         annotation_iterators=ANNOTATION_ITERATORS,
+        metadata=field_info.metadata,
     )
 
     compare_items(
         items,
-        FieldDataForLiteralValue(
+        FieldDataForBooleanValue(
             "True", key=key, value="True", active=False, label="True"
         ),
-        FieldDataForLiteralValue(
+        FieldDataForBooleanValue(
             "False", key=key, value="False", active=False, label="False"
+        ),
+    )
+
+
+def test_field_data_for_boolean_with_label():
+    class Model(BaseModel):
+        value: Annotated[bool, ta.BooleanLabels("YES", "NO")]
+
+    key = "value"
+    field_info = Model.model_fields[key]
+    items = field_data_from_annotation(
+        annotation=field_info.annotation,
+        key=key,
+        value=NO_VALUE,
+        default=field_info.default,
+        annotation_iterators=ANNOTATION_ITERATORS,
+        metadata=field_info.metadata,
+    )
+
+    compare_items(
+        items,
+        FieldDataForBooleanValue(
+            "True", key=key, value="True", active=False, label="YES"
+        ),
+        FieldDataForBooleanValue(
+            "False", key=key, value="False", active=False, label="NO"
         ),
     )
 
@@ -309,4 +382,5 @@ def test_disallowed_string_and_literal():
             value=NO_VALUE,
             default=field_info.default,
             annotation_iterators=ANNOTATION_ITERATORS,
+            metadata=field_info.metadata,
         )

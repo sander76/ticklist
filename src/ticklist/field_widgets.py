@@ -163,7 +163,7 @@ class FieldWidgetForModel(FieldWidget):
 
     @override
     def compose(self) -> ComposeResult:
-        yield Button(self._label, id="edit_button")
+        yield Button("edit", id="edit_button")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Run on button press."""

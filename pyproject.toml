@@ -39,7 +39,8 @@ dev = [
   # First version with uv support.
   "nox >= 2024.3.2",
   "uv",
-  "mypy"
+  "mypy",
+  "ruff"
 ]
 
 [tool.pytest.ini_options]
@@ -49,3 +50,21 @@ testpaths = "tests"
 strict = true
 pretty = true
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[tool.ruff]
+src=["src","tests","noxfile.py"]
+
+[tool.ruff.lint]
+select= ["F", # pyflakes
+        "I", # isort
+        "D", # pydocstyle
+        "E", # pycodestyle
+]
+[tool.ruff.lint.pydocstyle]
+convention="google"
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/*" =["D"]

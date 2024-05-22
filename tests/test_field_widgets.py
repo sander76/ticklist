@@ -6,9 +6,9 @@ import pytest
 from pydantic import BaseModel
 from textual.containers import Container
 from textual.widgets import Input
-from ticklist.form import Form, _Option
 
 from tests.app_with_form import MyApp
+from ticklist.form import Form, _Option
 
 
 class TestModelWithSingularAnnotation:

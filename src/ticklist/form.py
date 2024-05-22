@@ -286,6 +286,7 @@ class Form(Screen[BaseModel | NOTHING]):
                 value=value,
                 default=field_info.default,
                 annotation_iterators=self._annotation_iterators,
+                metadata=field_info.metadata,
             )
 
             if len(items) == 1:

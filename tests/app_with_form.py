@@ -2,6 +2,7 @@ from typing import Collection, Type
 
 from pydantic import BaseModel
 from textual.app import App
+
 from ticklist import form
 from ticklist.annotation_iterators import ANNOTATION_ITERATORS
 from ticklist.types import NO_VALUE, AnnotationIterator

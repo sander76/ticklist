@@ -16,7 +16,9 @@ def compare(result: object, expected: object):
 
 
 def compare_items(items: Collection, *objects):
-    assert len(items) == len(objects), "actual field-item count not equal to expected field-item count."
+    assert len(items) == len(
+        objects
+    ), "actual field-item count not equal to expected field-item count."
 
     for item, object in zip(items, objects, strict=True):
         compare(item, object)

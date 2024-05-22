@@ -1,6 +1,9 @@
 from enum import Enum
+from typing import Annotated
 
 from pydantic import BaseModel
+
+from ticklist import tick_annotations as ta
 
 
 class Colors(Enum):
@@ -31,6 +34,8 @@ class Sports(BaseModel):
 class MyCar(BaseModel):
     color: Colors
 
-    edition: Normal | Sports
+    edition: (
+        Annotated[Normal, ta.Label("normal")] | Annotated[Sports, ta.Label("sports")]
+    )
 
     extra_insurance: bool = True
