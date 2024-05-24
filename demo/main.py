@@ -10,7 +10,7 @@ from textual.widget import Widget
 from textual.widgets import Button, Label, ListItem, ListView, Pretty
 
 from demo.models import MyCar
-from ticklist import form
+from ticklist import annotation_iterators, form
 from ticklist.annotation_iterators import ANNOTATION_ITERATORS
 from ticklist.types import NO_VALUE
 
@@ -59,11 +59,9 @@ class MyApp(App):
     @on(Button.Pressed, "#new_car")
     @work
     async def _order_car(self) -> None:
-        car = await self.app.push_screen_wait(
-            form.Form(
-                MyCar, instance=NO_VALUE, annotation_iterators=ANNOTATION_ITERATORS
-            )
-        )
+        car = await self._manage_car()
+        if car is None:
+            return
         self.cars.append(car)
         self._update_cars_view()
 
@@ -75,15 +73,18 @@ class MyApp(App):
             return
 
         selected_car = self.cars[idx]
-        updated_car = await self.app.push_screen_wait(
-            form.Form(
-                MyCar, instance=selected_car, annotation_iterators=ANNOTATION_ITERATORS
-            )
-        )
-        if updated_car is NO_VALUE:
+        updated_car = await self._manage_car(instance=selected_car)
+        if updated_car is None:
             return
         self.cars[idx] = updated_car
         self._update_cars_view()
+
+    async def _manage_car(self, instance: MyCar | None = None) -> MyCar | None:
+        frm = form.form_factory(MyCar, instance, ANNOTATION_ITERATORS)
+        car = await self.app.push_screen_wait(frm)
+
+        print("this is my cars.")
+        return car
 
     def _update_cars_view(self) -> None:
         cars_view = self.query_one(ListView)
@@ -96,7 +97,7 @@ class MyApp(App):
         idx = event.list_view.index
         if idx is None:
             return
-        car: MyCar = self.cars[event.list_view.index]
+        car: MyCar = self.cars[idx]
 
         jsonned_dict = json.loads(car.model_dump_json())
 
@@ -104,6 +105,5 @@ class MyApp(App):
 
 
 if __name__ == "__main__":
-    print("running")
     app = MyApp()
     app.run()

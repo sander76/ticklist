@@ -35,12 +35,11 @@ optional-dependencies.dev = [
   "coverage[toml]>=6.5",
   "mypy",
   # First version with uv support.
-  "nox>=2024.3.2",
+  "nox[uv]>=2024.3.2",
   "pyproject-fmt",
   "pytest",
   "pytest-asyncio",
   "ruff",
-  "uv",
 ]
 
 [tool.hatch.version]
@@ -74,7 +73,6 @@ fail_under = 100
 source = [
   "ticklist",
 ]
-parallel = true
 branch = true
 
 [tool.mypy]

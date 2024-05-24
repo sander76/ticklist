@@ -6,7 +6,7 @@ from pathlib import Path
 
 import nox
 
-nox.options.reuse_existing_virtualenvs = True
+# nox.options.reuse_existing_virtualenvs = True
 nox.options.error_on_external_run = True
 
 nox.needs_version = ">=2024.3.2"
@@ -30,11 +30,13 @@ pydantic_latest = version("pydantic")
 @nox.parametrize("pydantic", [pydantic_latest, pydantic_oldest])
 def tests(session: nox.Session, pydantic: str) -> None:
     """Testing."""
-    session.install(".[dev]")
-
+    session.install(".[dev]", "--refresh-package", "ticklist")
     session.install(f"pydantic=={pydantic}")
     session.run("uv", "pip", "show", "pydantic")
-    session.run("coverage", "run", "-m", "pytest")
+    if session.python == pythons[-1] and pydantic == pydantic_latest:
+        session.run("coverage", "run", "-m", "pytest")
+    else:
+        session.run("pytest")
 
     session.notify("coverage_report")
 
@@ -43,7 +45,6 @@ def tests(session: nox.Session, pydantic: str) -> None:
 def coverage_report(session: nox.Session) -> None:
     """Coverage report."""
     session.install("coverage[toml]")
-    session.run("coverage", "combine")
     session.run("coverage", "report")
 
 
@@ -57,4 +58,4 @@ def quality(session: nox.Session) -> None:
     )
     session.run("pyproject-fmt", "pyproject.toml")
 
-    session.run("mypy", "src", "noxfile.py")
+    session.run("mypy", "src", "noxfile.py", "demo")

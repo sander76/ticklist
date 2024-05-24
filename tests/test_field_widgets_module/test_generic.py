@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from tests.app_with_form import MyApp
 from tests.test_field_widgets_module import check_state, click_option_container
-from ticklist.form import Form
+from ticklist.form import _Form
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_option_container_double_click():
     app = MyApp(MyModel)
 
     async with app.run_test() as pilot:
-        form = app.query_one(Form)
+        form = app.query_one(_Form)
         option_1, option_2 = app.query(".option_container").nodes
 
         await click_option_container(option_1, pilot)

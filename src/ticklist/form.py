@@ -34,21 +34,18 @@ This model results in the following form:
 ```
 """
 
-from typing import (
-    Any,
-    Collection,
-    Type,
-)
+from typing import Any, Collection, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
+from pydantic_core import ErrorDetails
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
-from textual.events import Click, Key
+from textual.events import Click, Key, Show
 from textual.geometry import Size
 from textual.message import Message
 from textual.reactive import reactive
-from textual.screen import Screen
+from textual.screen import Screen, ScreenResultType
 from textual.widgets import Button, Label, Pretty, Static
 from typing_extensions import override
 
@@ -83,7 +80,7 @@ class _Option(Static, can_focus=True):
         color: $secondary
     }
     _Option:focus {
-        color: red;
+        color: $secondary-lighten-2;
     }
     """
 
@@ -159,8 +156,9 @@ class _OptionGroup(Static, can_focus=False):
     .option_container {
         height:auto;
         layout: horizontal;
-        border: solid grey;
+        # border: solid grey;
         margin-left: 5;
+        margin-bottom: 1;
     }
     .field_label {
         # content-align: left middle;
@@ -210,7 +208,19 @@ class _OptionGroup(Static, can_focus=False):
                 _field_widget.disabled = True
 
 
-class Form(Screen[BaseModel | NOTHING]):
+ModelType = TypeVar("ModelType", bound=BaseModel)
+
+
+def form_factory(
+    model_type: type[ModelType],
+    instance: ModelType | None,
+    annotation_iterators: Collection[AnnotationIterator],
+) -> Screen[ModelType]:
+    """Return a form with correct typing."""
+    return _Form(model_type, instance, annotation_iterators)
+
+
+class _Form(Screen):  # type: ignore
     """Pydantic form.
 
     Contains widgets for creating and editing pydantic objects.
@@ -232,12 +242,15 @@ class Form(Screen[BaseModel | NOTHING]):
         width: 100%;
         padding:1;
     }
+    .field_error {
+        color: $error;
+    }
     """
 
     def __init__(
         self,
-        model: Type[BaseModel],
-        instance: BaseModel | NOTHING,
+        model: Type[ModelType],
+        instance: ModelType | NOTHING,
         annotation_iterators: Collection[AnnotationIterator],
     ) -> None:
         """Init.
@@ -257,13 +270,14 @@ class Form(Screen[BaseModel | NOTHING]):
 
         # copy of the instance in case this form
         # is cancelled and you need to return the old values.
-        self._old_instance = None if instance is NO_VALUE else instance
+        self._old_instance = instance
 
         self._annotation_iterators = annotation_iterators
         super().__init__()
 
     def _instantiate(self) -> bool:
         error_output = self.query_one(Pretty)
+        errors: list[ErrorDetails] = []
         try:
             self._instance = self._model(**self.obj)
             error_output.update("")
@@ -273,8 +287,23 @@ class Form(Screen[BaseModel | NOTHING]):
                 include_context=False, include_url=False, include_input=False
             )
             error_output.update(errors)
+
             return False
+        finally:
+            self._display_issues(errors)
         return True
+
+    def _display_issues(self, errors: list[ErrorDetails]) -> None:
+        print("display issues")
+        labels = self.query(".field_label")
+        for label in labels:
+            _key = label.id.split("_", maxsplit=1)[-1]
+            for error in errors:
+                if _key in error["loc"]:
+                    label.add_class("field_error")
+                    break
+            else:
+                label.remove_class("field_error")
 
     @override
     def compose(self) -> ComposeResult:
@@ -286,7 +315,7 @@ class Form(Screen[BaseModel | NOTHING]):
                 value = getattr(self._instance, field)
 
             # label showing the pydantic field/key.
-            yield Label(field, classes="field_label")
+            yield Label(field, classes="field_label", id=f"label_{field}")
 
             items = field_data_from_annotation(
                 annotation=field_info.annotation,
@@ -309,6 +338,9 @@ class Form(Screen[BaseModel | NOTHING]):
         with Container(classes="button_container"):
             yield Button("OK", variant="primary", id="ok")
             yield Button("CANCEL", variant="error", id="cancel")
+
+    def _on_show(self, event: Show) -> None:
+        self._instantiate()
 
     @on(FieldWidget.ValueChanged)
     def _field_widget_value_changed(self, event: FieldWidget.ValueChanged) -> None:
@@ -334,27 +366,25 @@ class Form(Screen[BaseModel | NOTHING]):
         This screen is popped from the view stack.
         When ok is pressed the resulting object is returned to the parent
         of this screen.
-        On cancel, either the old instance is returned or NO_VALUE.
+        On cancel, either the old instance is returned or None.
         """
         event.stop()
 
-        match event.button.id:
-            case "ok":
-                if self._instantiate():
-                    self.dismiss(self._instance)
-
-            case "cancel":
-                if self._old_instance:
-                    self.dismiss(self._old_instance)
-                else:
-                    self.dismiss(NO_VALUE)
+        match (event.button.id, self._instantiate(), self._old_instance):
+            case "ok", True, _:
+                self.dismiss(self._instance)
+            case "cancel", _, NOTHING.token:
+                self.dismiss(None)
+            case "cancel", _, _:
+                self.dismiss(self._old_instance)
 
     @on(FieldWidgetForModel.EditModel)
     def _on_edit_model(self, event: FieldWidgetForModel.EditModel) -> None:
-        def form_close_callback(result: BaseModel | NOTHING) -> None:
-            event.widget.value = result
+        def form_close_callback(result: event.model | None) -> None:
+            if result:
+                event.widget.value = result
 
         self.app.push_screen(
-            Form(event.model, event.value, self._annotation_iterators),
+            _Form(event.model, event.value, self._annotation_iterators),
             form_close_callback,
         )

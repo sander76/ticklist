@@ -15,11 +15,11 @@ class MyApp(App):
 
     def __init__(
         self,
-        model: Type[BaseModel],
+        model_type: Type[BaseModel],
         value: BaseModel | None = None,
         annotation_iterators: Collection[AnnotationIterator] | None = None,
     ):
-        self._model = model
+        self._model_type = model_type
         self._value = value if value else NO_VALUE
 
         self._annotation_iterators = (
@@ -29,5 +29,5 @@ class MyApp(App):
 
     def on_mount(self):
         self.push_screen(
-            form.Form(self._model, self._value, self._annotation_iterators)
+            form.form_factory(self._model_type, self._value, self._annotation_iterators)
         )

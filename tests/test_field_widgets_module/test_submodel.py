@@ -1,10 +1,9 @@
-
 import pytest
 from pydantic import BaseModel
 from textual.widgets import Input
 
 from tests.app_with_form import MyApp
-from ticklist.form import Form
+from ticklist.form import _Form
 
 
 class MyModel(BaseModel):
@@ -42,7 +41,7 @@ class MyModelWithDefault(BaseModel):
 async def test_initial_values(app, result):
     """Form object has default model value at startup."""
     async with app.run_test():
-        my_form = app.query_one(Form)
+        my_form = app.query_one(_Form)
 
         assert my_form.obj == result
 
@@ -52,8 +51,8 @@ async def test_manual_input():
     app = MyApp(MyModel)
 
     async with app.run_test() as pilot:
-        my_main_model_form = app.query_one(Form)
-
+        my_main_model_form = app.query_one(_Form)
+        assert my_main_model_form.obj == {}
         # this will push a new form with SubModel as form data.
         await pilot.click("#edit_button")
 
@@ -72,8 +71,17 @@ async def test_manual_input():
         # open the form again to edit the SubModel
         await pilot.click("#edit_button")
 
+        # cancel again
+        await pilot.click("#cancel")
+        assert my_main_model_form.obj == {
+            "my_sub_model": MyModel.SubModel(**{"my_value": "some_default"})
+        }
+
+        # open the form again to edit the SubModel
+        await pilot.click("#edit_button")
+
         # get the input field for the "my_value" property of the SubModel
-        sub_model_form = app.query(Form).last()
+        sub_model_form = app.query(_Form).last()
         inp = sub_model_form.query_one(Input)
         inp.clear()
         inp.focus()

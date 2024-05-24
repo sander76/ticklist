@@ -3,13 +3,12 @@
 Examples: int, str.
 """
 
-
 import pytest
 from pydantic import BaseModel
 from textual.widgets import Input
 
 from tests.app_with_form import MyApp
-from ticklist.form import Form
+from ticklist.form import _Form
 
 
 class MyStringModel(BaseModel):
@@ -42,7 +41,7 @@ async def test_initial_values(app, result):
     """Form object has default model value at startup."""
 
     async with app.run_test():
-        my_form = app.query_one(Form)
+        my_form = app.query_one(_Form)
 
         assert my_form.obj == result
 
@@ -61,7 +60,7 @@ async def test_manual_input(app, manual_input):
     """User entry in input ends up in form object."""
 
     async with app.run_test() as pilot:
-        my_form = app.query_one(Form)
+        my_form = app.query_one(_Form)
         my_inp = app.query_one(Input)
 
         my_inp.clear()
