@@ -32,6 +32,8 @@ class Sports(BaseModel):
 
 
 class MyCar(BaseModel):
+    customer_name: str
+
     color: Colors
 
     edition: (

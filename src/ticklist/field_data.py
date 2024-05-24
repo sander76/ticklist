@@ -8,8 +8,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, Literal, Self
-from xmlrpc.client import boolean
+from typing import Any, Self
 
 from pydantic import BaseModel
 from typing_extensions import override
@@ -32,7 +31,6 @@ class FieldData(metaclass=ABCMeta):
     @abstractmethod
     def field_widget(self) -> type[FieldWidget]:
         """Associated FieldWidget."""
-        ...
 
     def __init__(
         self,
@@ -324,25 +322,26 @@ class FieldDataForBooleanValue(FieldData):
     @classmethod
     def parse(
         cls,
-        annotation: Literal["True", "False"],
+        annotation: bool,
         key: str,
         value: Any,
         default: Any,
         metadata: ta.TickAnnotations,
     ) -> Self:
         def check(value: Any, annotation: Any) -> bool:
-            if value == annotation:
+            if value is annotation:
                 return True
             return False
 
         _, _active = cls._evaluate_values(annotation, default, value, check)
 
-        label: str = annotation
         if boolean_label := metadata.get("boolean_labels", None):
-            if annotation == "True":
+            if annotation:
                 label = boolean_label.label_for_true
             else:
                 label = boolean_label.label_for_false
+        else:
+            label = str(annotation)
 
         return cls(
             annotation=annotation,

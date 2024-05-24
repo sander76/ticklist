@@ -9,6 +9,7 @@ from ticklist import tick_annotations as ta
 from ticklist.annotation_iterators import (
     ANNOTATION_ITERATORS,
     StringAndLiteralAnnotationNotAllowed,
+    annotated_iterator,
     field_data_from_annotation,
 )
 from ticklist.field_data import (
@@ -30,7 +31,7 @@ def test_find_match_fail():
             key="my_key",
             value=NO_VALUE,
             default=NO_VALUE,
-            annotation_iterators=[],
+            annotation_iterators=[annotated_iterator],
             metadata={},
         )  # type: ignore
 
@@ -329,10 +330,18 @@ def test_field_data_for_boolean():
     compare_items(
         items,
         FieldDataForBooleanValue(
-            "True", key=key, value="True", active=False, label="True"
+            True,
+            key=key,
+            value=True,
+            active=False,
+            label="True",
         ),
         FieldDataForBooleanValue(
-            "False", key=key, value="False", active=False, label="False"
+            False,
+            key=key,
+            value=False,
+            active=False,
+            label="False",
         ),
     )
 
@@ -354,12 +363,8 @@ def test_field_data_for_boolean_with_label():
 
     compare_items(
         items,
-        FieldDataForBooleanValue(
-            "True", key=key, value="True", active=False, label="YES"
-        ),
-        FieldDataForBooleanValue(
-            "False", key=key, value="False", active=False, label="NO"
-        ),
+        FieldDataForBooleanValue(True, key=key, value=True, active=False, label="YES"),
+        FieldDataForBooleanValue(False, key=key, value=False, active=False, label="NO"),
     )
 
 

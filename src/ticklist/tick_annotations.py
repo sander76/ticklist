@@ -3,10 +3,10 @@
 To be used inside the `Annotations` type annotation.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from functools import cache
-from inspect import isclass
-from typing import Any, Collection, Iterator, NotRequired, TypedDict, TypeVar
+from typing import Any, Collection, NotRequired, TypedDict
 
 
 @dataclass(frozen=True)

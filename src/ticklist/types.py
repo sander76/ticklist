@@ -1,7 +1,7 @@
 """Tui-forms custom types."""
 
 from enum import Enum
-from typing import Any, Collection, Iterable, Protocol
+from typing import Any, Iterable, Protocol
 
 from ticklist.tick_annotations import TickAnnotations
 
@@ -49,4 +49,3 @@ class AnnotationIterator(Protocol):
                 like in Unions/Enums etc.)
             or nothing (when the iterator does not match the annotation).
         """
-        ...

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from enum import Enum
 from inspect import isclass
-from itertools import chain
 from types import UnionType
 from typing import Any, Collection, Iterable, Literal, get_args
 
@@ -72,6 +71,7 @@ def field_data_from_annotation(
         value: An optional value of the key.
         default: An optional default value of the key.
         annotation_iterators: A collection of annotation iterators.
+        metadata: metadata provided by the pydantic model.
 
     Raises:
         StringAndLiteralAnnotationNotAllowed: _description_
@@ -106,11 +106,11 @@ def bool_type_iterator(
     if annotation is bool:
         _logger.debug("annotation: Bool %s", annotation)
         yield (
-            FieldDataForBooleanValue.parse("True", key, value, default, metadata),
+            FieldDataForBooleanValue.parse(True, key, value, default, metadata),
             metadata,
         )
         yield (
-            FieldDataForBooleanValue.parse("False", key, value, default, metadata),
+            FieldDataForBooleanValue.parse(False, key, value, default, metadata),
             metadata,
         )
 
@@ -263,7 +263,6 @@ def annotated_iterator(
 
 
 ANNOTATION_ITERATORS: tuple[AnnotationIterator, ...] = (
-    annotated_iterator,
     bool_type_iterator,
     enum_type_iterator,
     enum_item_type_iterator,
@@ -273,6 +272,7 @@ ANNOTATION_ITERATORS: tuple[AnnotationIterator, ...] = (
     model_type_iterator,
     literal_type_iterator,
     literal_value_iterator,
+    annotated_iterator,
 )
 
 

@@ -1,50 +1,81 @@
 [build-system]
-requires = ["hatchling","hatch-vcs"]
 build-backend = "hatchling.build"
+
+requires = [
+  "hatch-vcs",
+  "hatchling",
+]
 
 [project]
 name = "ticklist"
-dynamic = ["version"]
-description = 'textual forms based on pydantic models.'
+description = "textual forms based on pydantic models."
 readme = "README.md"
-requires-python = ">=3.8"
+keywords = [
+]
 license = "MIT"
-keywords = []
 authors = [
   { name = "Sander Teunissen", email = "s.teunissen@gmail.com" },
 ]
+requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 4 - Beta",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dynamic = [
+  "version",
 ]
 dependencies = [
-  "pydantic","textual"
+  "pydantic>=2.5",
+  "textual",
 ]
 
+optional-dependencies.dev = [
+  "coverage[toml]>=6.5",
+  "mypy",
+  # First version with uv support.
+  "nox>=2024.3.2",
+  "pyproject-fmt",
+  "pytest",
+  "pytest-asyncio",
+  "ruff",
+  "uv",
+]
 
 [tool.hatch.version]
 source = "vcs"
 
-[project.optional-dependencies]
-tests = [
-  "pytest",
-  "pytest-asyncio",
-  "coverage[toml]>=6.5",
+[tool.ruff]
+src = [
+  "noxfile.py",
+  "src",
+  "tests",
 ]
 
-dev = [
-  "ticklist[tests]",
-  # First version with uv support.
-  "nox >= 2024.3.2",
-  "uv",
-  "mypy",
-  "ruff"
+lint.select = [
+  "D", # pydocstyle
+  "E", # pycodestyle
+  "F", # pyflakes
+  "I", # isort
 ]
+lint.extend-per-file-ignores."tests/*" = [
+  "D",
+]
+lint.pydocstyle.convention = "google"
 
 [tool.pytest.ini_options]
 testpaths = "tests"
+
+[tool.coverage.report]
+fail_under = 100
+
+[tool.coverage.run]
+source = [
+  "ticklist",
+]
+parallel = true
+branch = true
 
 [tool.mypy]
 strict = true
@@ -53,18 +84,3 @@ pretty = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 ignore_errors = true
-
-[tool.ruff]
-src=["src","tests","noxfile.py"]
-
-[tool.ruff.lint]
-select= ["F", # pyflakes
-        "I", # isort
-        "D", # pydocstyle
-        "E", # pycodestyle
-]
-[tool.ruff.lint.pydocstyle]
-convention="google"
-
-[tool.ruff.lint.extend-per-file-ignores]
-"tests/*" =["D"]

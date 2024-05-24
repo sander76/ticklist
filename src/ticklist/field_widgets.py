@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from ticklist.field_data import FieldData  # pragma: no cover
 
 
-class FieldWidget(Static, can_focus=True):
+class FieldWidget(Static, can_focus=False):
     """A base widget displaying a (or part of a) pydantic field.
 
     Depending on annotation a pydantic field representation can consist

@@ -44,7 +44,7 @@ from pydantic import BaseModel, ValidationError
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
-from textual.events import Click
+from textual.events import Click, Key
 from textual.geometry import Size
 from textual.message import Message
 from textual.reactive import reactive
@@ -81,6 +81,9 @@ class _Option(Static, can_focus=True):
     _Option.checked {
         text-style: bold;
         color: $secondary
+    }
+    _Option:focus {
+        color: red;
     }
     """
 
@@ -121,6 +124,11 @@ class _Option(Static, can_focus=True):
         else:
             self.checked = True
 
+    @on(Key)
+    def key_pressed(self, key: Key) -> None:
+        if key.key in ["space", "enter"]:
+            self.checked = True
+
     def watch_checked(self) -> None:
         """React to the value being changed."""
         self.set_class(self.checked, "checked")
@@ -144,7 +152,7 @@ class _Option(Static, can_focus=True):
         return 3
 
 
-class _OptionGroup(Static):
+class _OptionGroup(Static, can_focus=False):
     """A group of FieldWidgets selectable by an option button."""
 
     DEFAULT_CSS = """
