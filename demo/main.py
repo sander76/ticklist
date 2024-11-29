@@ -80,6 +80,8 @@ class MyApp(App):
         self._update_cars_view()
 
     async def _manage_car(self, instance: MyCar | None = None) -> MyCar | None:
+        if instance is None:
+            instance = NO_VALUE
         frm = form.form_factory(MyCar, instance, ANNOTATION_ITERATORS)
         car = await self.app.push_screen_wait(frm)
 
