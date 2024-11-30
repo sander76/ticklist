@@ -45,7 +45,7 @@ from textual.events import Click, Key, Show
 from textual.geometry import Size
 from textual.message import Message
 from textual.reactive import reactive
-from textual.screen import Screen, ScreenResultType
+from textual.screen import Screen
 from textual.widgets import Button, Label, Pretty, Static
 from typing_extensions import override
 

@@ -10,7 +10,7 @@ def compare(result: object, expected: object):
     The below code gives clear pointers where stuff goes wrong
     (especially in combination with pytest-icdiff)
     """
-    assert type(result) == type(expected)
+    assert type(result) is type(expected)
 
     assert result.__dict__ == expected.__dict__
 
