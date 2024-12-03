@@ -64,7 +64,7 @@ class FieldWidget(Static, can_focus=False):
             field_data: Field data for this widget.
         """
         self._key = field_data.key
-        # super needs to become become the setting of a reactive value.
+        # super needs to become before the setting of a reactive value.
         super().__init__(classes="field_widget")
         self.value = field_data.value
 

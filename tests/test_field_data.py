@@ -1,4 +1,5 @@
 from enum import Enum
+from types import NoneType
 from typing import Annotated, Literal
 
 import pytest
@@ -19,6 +20,7 @@ from ticklist.field_data import (
     FieldDataForInt,
     FieldDataForLiteralValue,
     FieldDataForModel,
+    FieldDataForNoneValue,
     FieldDataForString,
 )
 from ticklist.types import NO_VALUE
@@ -92,6 +94,43 @@ def test_field_data_for_string():
             value="abc",
             active=True,
             label="manual input",
+        ),
+    )
+
+
+def test_field_data_for_optional_string():
+    class MyOptionalString(BaseModel):
+        optional_string: str | None = None
+
+    key = "optional_string"
+    field_info = MyOptionalString.model_fields[key]
+
+    items = list(
+        field_data_from_annotation(
+            annotation=field_info.annotation,
+            key=key,
+            value=NO_VALUE,
+            default=field_info.default,
+            annotation_iterators=ANNOTATION_ITERATORS,
+            metadata={},
+        )
+    )
+
+    compare_items(
+        items,
+        FieldDataForString(
+            annotation=str,
+            key=key,
+            value=NO_VALUE,
+            active=False,
+            label="manual input",
+        ),
+        FieldDataForNoneValue(
+            annotation=NoneType(),
+            key=key,
+            active=True,
+            value=None,
+            label="None",
         ),
     )
 

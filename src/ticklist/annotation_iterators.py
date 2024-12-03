@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from enum import Enum
 from inspect import isclass
-from types import UnionType
+from types import NoneType, UnionType
 from typing import Any, Collection, Iterable, Literal, get_args
 
 from pydantic import BaseModel
@@ -18,6 +18,7 @@ from ticklist.field_data import (
     FieldDataForInt,
     FieldDataForLiteralValue,
     FieldDataForModel,
+    FieldDataForNoneValue,
     FieldDataForString,
 )
 from ticklist.types import AnnotationIterator
@@ -114,6 +115,17 @@ def bool_type_iterator(
             metadata,
         )
 
+def none_type_iterator(
+        annotation:Any,key:str,value:Any,default:Any,metadata:ta.TickAnnotations
+)->Iterable[tuple[Any, ta.TickAnnotations]]:
+    if annotation is NoneType:
+        yield (
+            FieldDataForNoneValue.parse(None, key, value, default, metadata),
+            metadata,
+        )
+    # else:
+    #     return
+        # yield
 
 def enum_type_iterator(
     annotation: Any,
@@ -264,6 +276,7 @@ def annotated_iterator(
 
 ANNOTATION_ITERATORS: tuple[AnnotationIterator, ...] = (
     bool_type_iterator,
+    none_type_iterator,
     enum_type_iterator,
     enum_item_type_iterator,
     str_type_iterator,

@@ -157,8 +157,8 @@ class _OptionGroup(Static, can_focus=False):
         height:auto;
         layout: horizontal;
         # border: solid grey;
-        margin-left: 5;
-        margin-bottom: 1;
+        margin-left: 3;
+        margin-bottom: 0;  # Vertical space between individual options.
     }
     .field_label {
         # content-align: left middle;
@@ -213,7 +213,7 @@ ModelType = TypeVar("ModelType", bound=BaseModel)
 
 def form_factory(
     model_type: type[ModelType],
-    instance: ModelType | None,
+    instance: ModelType | NOTHING,
     annotation_iterators: Collection[AnnotationIterator],
 ) -> Screen[ModelType]:
     """Return a form with correct typing."""
@@ -297,7 +297,7 @@ class _Form(Screen):  # type: ignore
         print("display issues")
         labels = self.query(".field_label")
         for label in labels:
-            _key = label.id.split("_", maxsplit=1)[-1]
+            _key = label.id.split("_", maxsplit=1)[-1]  # type: ignore
             for error in errors:
                 if _key in error["loc"]:
                     label.add_class("field_error")
@@ -380,7 +380,7 @@ class _Form(Screen):  # type: ignore
 
     @on(FieldWidgetForModel.EditModel)
     def _on_edit_model(self, event: FieldWidgetForModel.EditModel) -> None:
-        def form_close_callback(result: event.model | None) -> None:
+        def form_close_callback(result: BaseModel | None) -> None:
             if result:
                 event.widget.value = result
 
