@@ -8,7 +8,6 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum
-from types import NoneType
 from typing import Any, Self
 
 from pydantic import BaseModel
@@ -310,30 +309,38 @@ class FieldDataForLiteralValue(FieldData):
             label=annotation,
         )
 
+
 class FieldDataForNoneValue(FieldData):
     """Field data for none value."""
 
     @property
-    def field_widget(self)->type[FieldWidget]:
+    def field_widget(self) -> type[FieldWidget]:
+        """Associated FieldWidget."""
         return FieldWidgetForFixedValue
-    
+
     @override
     @classmethod
     def parse(
         cls,
-        annotation: NoneType,
+        annotation: None,
         key: str,
         value: Any,
         default: Any,
         metadata: ta.TickAnnotations,
     ) -> Self:
-        def check(value:Any,annotation:Any)->bool:
+        def check(value: Any, annotation: Any) -> bool:
             if value is annotation:
                 return True
             return False
-        
-        _,_active=cls._evaluate_values(annotation,default,value,check)
-        return cls(annotation=annotation,key=key,value=annotation,active=_active,label="None")
+
+        _, _active = cls._evaluate_values(annotation, default, value, check)
+        return cls(
+            annotation=annotation,
+            key=key,
+            value=annotation,
+            active=_active,
+            label="None",
+        )
 
 
 class FieldDataForBooleanValue(FieldData):

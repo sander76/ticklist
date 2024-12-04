@@ -115,17 +115,17 @@ def bool_type_iterator(
             metadata,
         )
 
+
 def none_type_iterator(
-        annotation:Any,key:str,value:Any,default:Any,metadata:ta.TickAnnotations
-)->Iterable[tuple[Any, ta.TickAnnotations]]:
+    annotation: Any, key: str, value: Any, default: Any, metadata: ta.TickAnnotations
+) -> Iterable[tuple[Any, ta.TickAnnotations]]:
+    """Yield a value for a none type."""
     if annotation is NoneType:
         yield (
             FieldDataForNoneValue.parse(None, key, value, default, metadata),
             metadata,
         )
-    # else:
-    #     return
-        # yield
+
 
 def enum_type_iterator(
     annotation: Any,

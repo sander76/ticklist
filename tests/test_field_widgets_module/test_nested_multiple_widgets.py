@@ -38,6 +38,10 @@ class MyModelWithDefault(BaseModel):
     my_value: Literal["A"] | int = 5
 
 
+class MyModelWithOptional(BaseModel):
+    my_value: int | None = None
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "app,result,enabled",
@@ -47,6 +51,12 @@ class MyModelWithDefault(BaseModel):
         (
             MyApp(MyModelWithDefault, MyModelWithDefault(my_value="A")),
             {"my_value": "A"},
+            (True, False),
+        ),
+        (MyApp(MyModelWithOptional), {"my_value": None}, (False, True)),
+        (
+            MyApp(MyModelWithOptional, MyModelWithOptional(my_value=1)),
+            {"my_value": "1"},
             (True, False),
         ),
     ],

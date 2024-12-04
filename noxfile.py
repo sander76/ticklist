@@ -1,18 +1,3 @@
-# import nox
-
-
-# @nox.session
-# def test(session):
-#     session.run_install(
-#         "uv",
-#         "sync",
-#         "--frozen",
-#         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-#     )
-
-#     session.run("pytest")
-
-
 """Nox file."""
 
 import tomllib
@@ -41,7 +26,7 @@ pydantic_oldest = "2.5"
 pydantic_latest = version("pydantic")
 
 
-@nox.session(python=pythons)
+@nox.session(python=pythons, tags=["tests"])
 @nox.parametrize("pydantic", [pydantic_latest, pydantic_oldest])
 def tests(session: nox.Session, pydantic: str) -> None:
     """Testing."""
@@ -56,10 +41,9 @@ def tests(session: nox.Session, pydantic: str) -> None:
 
     if session.python == pythons[-1] and pydantic == pydantic_latest:
         session.run("coverage", "run", "-m", "pytest")
+        session.notify("coverage_report")
     else:
         session.run("pytest")
-
-    session.notify("coverage_report")
 
 
 @nox.session
