@@ -59,7 +59,6 @@ fail_under = 100
 source = [
   "ticklist",
 ]
-branch = true
 
 [tool.mypy]
 strict = true

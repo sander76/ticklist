@@ -26,42 +26,42 @@ pydantic_oldest = "2.5"
 pydantic_latest = version("pydantic")
 
 
-@nox.session(python=pythons, tags=["tests"])
-@nox.parametrize("pydantic", [pydantic_latest, pydantic_oldest])
-def tests(session: nox.Session, pydantic: str) -> None:
-    """Testing."""
+def uv_install(session: nox.Session) -> None:
     session.run_install(
         "uv",
         "sync",
         "--frozen",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
+
+
+@nox.session(python=pythons, tags=["tests"])
+@nox.parametrize("pydantic", [pydantic_latest, pydantic_oldest])
+def tests(session: nox.Session, pydantic: str) -> None:
+    """Testing."""
+    uv_install(session)
     session.install(f"pydantic=={pydantic}")
     session.run("uv", "pip", "show", "pydantic")
 
     if session.python == pythons[-1] and pydantic == pydantic_latest:
-        session.run("coverage", "run", "-m", "pytest")
-        session.notify("coverage_report")
+        session.notify("coverage")
     else:
         session.run("pytest")
 
 
 @nox.session
-def coverage_report(session: nox.Session) -> None:
+def coverage(session: nox.Session) -> None:
     """Coverage report."""
-    session.install("coverage[toml]")
+    uv_install(session)
+    session.run("coverage", "run", "-m", "pytest")
+
     session.run("coverage", "report")
 
 
 @nox.session(tags=["quality"])
 def quality(session: nox.Session) -> None:
     """Quality checks."""
-    session.run_install(
-        "uv",
-        "sync",
-        "--frozen",
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-    )
+    uv_install(session)
 
     session.run(
         "ruff", "check", "src", "tests", "noxfile.py", "--fix", "--exit-non-zero-on-fix"
