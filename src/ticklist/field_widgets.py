@@ -82,10 +82,6 @@ class FieldWidgetForString(FieldWidget):
             value="" if self.value is NO_VALUE else str(self.value), classes="input"
         )
 
-    @override
-    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        return 3
-
     def on_input_changed(self, event: Input.Changed) -> None:
         """Execute on input change."""
         event.stop()
@@ -103,10 +99,6 @@ class FieldWidgetForInt(FieldWidget):
             classes="input",
             type="integer",
         )
-
-    @override
-    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        return 3
 
     def on_input_changed(self, event: Input.Changed) -> None:
         """Execute on input change."""
