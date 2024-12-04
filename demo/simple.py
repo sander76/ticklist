@@ -1,8 +1,7 @@
 from typing import Literal
 
 from pydantic import BaseModel
-from textual import on, work
-from textual.app import App, ComposeResult
+from textual.app import App
 
 from ticklist import form
 from ticklist.annotation_iterators import ANNOTATION_ITERATORS
@@ -15,7 +14,7 @@ class MyModel(BaseModel):
 
 
 class MyApp(App):
-    def on_mount(self)->None:
+    def on_mount(self) -> None:
         frm = form.form_factory(MyModel, NO_VALUE, ANNOTATION_ITERATORS)
         self.push_screen(frm)
 
