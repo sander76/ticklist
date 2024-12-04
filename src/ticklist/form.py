@@ -252,6 +252,7 @@ class _Form(Screen):  # type: ignore
         model: Type[ModelType],
         instance: ModelType | NOTHING,
         annotation_iterators: Collection[AnnotationIterator],
+        model_info: bool = False,
     ) -> None:
         """Init.
 
@@ -273,20 +274,18 @@ class _Form(Screen):  # type: ignore
         self._old_instance = instance
 
         self._annotation_iterators = annotation_iterators
+        self._model_info = model_info
         super().__init__()
 
     def _instantiate(self) -> bool:
-        error_output = self.query_one(Pretty)
         errors: list[ErrorDetails] = []
         try:
             self._instance = self._model(**self.obj)
-            error_output.update("")
 
         except ValidationError as err:
             errors = err.errors(
                 include_context=False, include_url=False, include_input=False
             )
-            error_output.update(errors)
 
             return False
         finally:
@@ -294,6 +293,10 @@ class _Form(Screen):  # type: ignore
         return True
 
     def _display_issues(self, errors: list[ErrorDetails]) -> None:
+        if self._model_info:
+            error_output = self.query_one(Pretty)
+            error_output.update(errors)
+
         print("display issues")
         labels = self.query(".field_label")
         for label in labels:
@@ -330,11 +333,17 @@ class _Form(Screen):  # type: ignore
                 yield items[0].field_widget(items[0])
             else:
                 yield _OptionGroup(items)
-        # the current value of the object from which we are going to instantiate
-        # the model.
-        yield Label(str(self.obj), id="obj")
-        # used for pydantic validation error output.
-        yield Pretty("")
+
+        if self._model_info:
+            # the current value of the object from which we are going to instantiate
+            # the model.
+            yield Label(str(self.obj), id="obj")
+
+        if self._model_info:
+            # used for pydantic validation error output.
+
+            yield Pretty("")
+
         with Container(classes="button_container"):
             yield Button("OK", variant="primary", id="ok")
             yield Button("CANCEL", variant="error", id="cancel")
@@ -355,9 +364,10 @@ class _Form(Screen):  # type: ignore
             self.obj.pop(event.key, None)
         else:
             self.obj[event.key] = event.value
-        # this is here for debugging purposes and shows the dict with the latest values.
-        lbl = self.query_one("#obj", expect_type=Label)
-        lbl.update(str(self.obj))
+        if self._model_info:
+            # this is here for debugging purposes and shows the dict with the latest values.
+            lbl = self.query_one("#obj", expect_type=Label)
+            lbl.update(str(self.obj))
         self._instantiate()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
