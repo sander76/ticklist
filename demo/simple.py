@@ -15,8 +15,11 @@ class MyModel(BaseModel):
 
 class MyApp(App):
     def on_mount(self) -> None:
-        frm = form.form_factory(MyModel, NO_VALUE, ANNOTATION_ITERATORS)
-        self.push_screen(frm)
+        frm = form._Form(MyModel, NO_VALUE, ANNOTATION_ITERATORS)
+        self.push_screen(frm, self._check_result)
+
+    def _check_result(self, result: form.ScreenResult | None) -> None:
+        pass
 
 
 if __name__ == "__main__":

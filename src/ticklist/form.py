@@ -34,7 +34,7 @@ This model results in the following form:
 ```
 """
 
-from typing import Any, Collection, Type, TypeVar
+from typing import Any, Collection, Generic, Literal, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 from pydantic_core import ErrorDetails
@@ -211,16 +211,23 @@ class _OptionGroup(Static, can_focus=False):
 ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
+class ScreenResult(Generic[ModelType]):
+    def __init__(self, model: ModelType, action: Literal["cancel", "ok"]):
+        self.model = model
+        self.action = action
+
+
 def form_factory(
     model_type: type[ModelType],
     instance: ModelType | NOTHING,
     annotation_iterators: Collection[AnnotationIterator],
-) -> Screen[ModelType]:
+    model_info: bool = False,
+) -> Screen[ScreenResult[ModelType]]:
     """Return a form with correct typing."""
-    return _Form(model_type, instance, annotation_iterators)
+    return _Form(model_type, instance, annotation_iterators, model_info)
 
 
-class _Form(Screen):  # type: ignore
+class _Form(Screen[ScreenResult[ModelType]]):
     """Pydantic form.
 
     Contains widgets for creating and editing pydantic objects.
@@ -382,17 +389,18 @@ class _Form(Screen):  # type: ignore
 
         match (event.button.id, self._instantiate(), self._old_instance):
             case "ok", True, _:
-                self.dismiss(self._instance)
+                self.dismiss(ScreenResult(self._instance, action="ok"))
             case "cancel", _, NOTHING.token:
-                self.dismiss(None)
+                self.dismiss()
             case "cancel", _, _:
-                self.dismiss(self._old_instance)
+                self.dismiss(ScreenResult(self._old_instance, action="cancel"))
 
     @on(FieldWidgetForModel.EditModel)
     def _on_edit_model(self, event: FieldWidgetForModel.EditModel) -> None:
-        def form_close_callback(result: BaseModel | None) -> None:
-            if result:
-                event.widget.value = result
+        def form_close_callback(result: ScreenResult | None) -> None:
+            if result is None:
+                return
+            event.widget.value = result.model
 
         self.app.push_screen(
             _Form(event.model, event.value, self._annotation_iterators),

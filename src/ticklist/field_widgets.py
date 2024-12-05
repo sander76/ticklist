@@ -31,7 +31,7 @@ class FieldWidget(Static, can_focus=False):
     DEFAULT_CSS = """
     FieldWidget {
         layout: horizontal;
-        margin-left: 5;
+        margin-left: 3;
     }
     Input {
         min-width: 40;
@@ -75,6 +75,10 @@ class FieldWidget(Static, can_focus=False):
 
 class FieldWidgetForString(FieldWidget):
     """Input widget for strings."""
+
+    DEFAULT_CSS = """
+    Input {margin-left:0;}
+    """
 
     @override
     def compose(self) -> ComposeResult:

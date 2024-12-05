@@ -82,11 +82,12 @@ class MyApp(App):
     async def _manage_car(self, instance: MyCar | None = None) -> MyCar | None:
         if instance is None:
             instance = NO_VALUE
-        frm = form.form_factory(MyCar, instance, ANNOTATION_ITERATORS)
+        frm = form.form_factory(MyCar, instance, ANNOTATION_ITERATORS, model_info=True)
         car = await self.app.push_screen_wait(frm)
 
-        print("this is my cars.")
-        return car
+        if car is not None:
+            return car.model
+        return None
 
     def _update_cars_view(self) -> None:
         cars_view = self.query_one(ListView)
