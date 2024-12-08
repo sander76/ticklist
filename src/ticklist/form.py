@@ -184,7 +184,7 @@ class _OptionGroup(Static, can_focus=False):
         for idx, data in enumerate(self._field_data):
             with Horizontal(classes="option_container"):
                 yield _Option(idx, data.active)
-                yield Label(data.label, classes="field_widget_label")
+                # yield Label(data.label, classes="field_widget_label")
                 _field_widget = data.field_widget(data)
                 _field_widget.disabled = not data.active
                 yield _field_widget
@@ -212,27 +212,27 @@ ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
 class ScreenResult(Generic[ModelType]):
+    """Returned when the form is closed."""
+
     def __init__(self, model: ModelType, action: Literal["cancel", "ok"]):
+        """Init.
+
+        Args:
+            model: Model created by the form.
+                Either a new model, or the original model provided during instantiation.
+            action: Which action caused the form to close.
+        """
         self.model = model
         self.action = action
 
 
-def form_factory(
-    model_type: type[ModelType],
-    instance: ModelType | NOTHING,
-    annotation_iterators: Collection[AnnotationIterator],
-    model_info: bool = False,
-) -> Screen[ScreenResult[ModelType]]:
-    """Return a form with correct typing."""
-    return _Form(model_type, instance, annotation_iterators, model_info)
-
-
-class _Form(Screen[ScreenResult[ModelType]]):
+class Form(Screen[ScreenResult[ModelType]]):
     """Pydantic form.
 
     Contains widgets for creating and editing pydantic objects.
     """
 
+    DEFAULT_CLASSES = "ticklistForm"
     DEFAULT_CSS = """
     .field_label {
         text-style: bold;
@@ -271,6 +271,8 @@ class _Form(Screen[ScreenResult[ModelType]]):
                 (default) values to be used. Defaults to None.
             annotation_iterators: An annotation iterator evaluates an annotation and
                 either results in a field data object or allows to continue iteration.
+            model_info: Mostly for debugging purposes. Shows creation of arguments
+                while entering data.
         """
         self._model = model
         self.obj: dict[str, Any] = {}
@@ -293,7 +295,7 @@ class _Form(Screen[ScreenResult[ModelType]]):
             errors = err.errors(
                 include_context=False, include_url=False, include_input=False
             )
-
+            self._instance = NO_VALUE
             return False
         finally:
             self._display_issues(errors)
@@ -372,7 +374,8 @@ class _Form(Screen[ScreenResult[ModelType]]):
         else:
             self.obj[event.key] = event.value
         if self._model_info:
-            # this is here for debugging purposes and shows the dict with the latest values.
+            # this is here for debugging purposes and shows
+            # the dict with the latest values.
             lbl = self.query_one("#obj", expect_type=Label)
             lbl.update(str(self.obj))
         self._instantiate()
@@ -386,23 +389,25 @@ class _Form(Screen[ScreenResult[ModelType]]):
         On cancel, either the old instance is returned or None.
         """
         event.stop()
+        self._instantiate()
 
-        match (event.button.id, self._instantiate(), self._old_instance):
-            case "ok", True, _:
-                self.dismiss(ScreenResult(self._instance, action="ok"))
-            case "cancel", _, NOTHING.token:
-                self.dismiss()
-            case "cancel", _, _:
+        if event.button.id == "cancel":
+            if self._old_instance is not NO_VALUE:
                 self.dismiss(ScreenResult(self._old_instance, action="cancel"))
+            self.dismiss()
+        else:
+            if self._instance is NO_VALUE:
+                pass
+            self.dismiss(ScreenResult(self._instance, action="ok"))
 
     @on(FieldWidgetForModel.EditModel)
     def _on_edit_model(self, event: FieldWidgetForModel.EditModel) -> None:
-        def form_close_callback(result: ScreenResult | None) -> None:
+        def form_close_callback(result: ScreenResult | None) -> None:  # type: ignore[type-arg]
             if result is None:
                 return
             event.widget.value = result.model
 
         self.app.push_screen(
-            _Form(event.model, event.value, self._annotation_iterators),
+            Form(event.model, event.value, self._annotation_iterators),
             form_close_callback,
         )

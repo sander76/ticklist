@@ -1,16 +1,16 @@
 from typing import Literal
-from uuid import uuid4
 
 import pytest
 from pydantic import BaseModel
 
 from tests.app_with_form import MyApp
 from tests.test_field_widgets_module import check_state, click_option_container
-from ticklist.form import _Form, _Option
+from ticklist.form import Form, _Option
 
 
 @pytest.mark.asyncio
-async def test_option_container_double_click():
+@pytest.mark.parametrize("model_info", [True, False])
+async def test_option_container_double_click(model_info):
     """Multiple clicks on option group does not change state.
 
     An option container is always part of a group. Inside this group
@@ -21,10 +21,10 @@ async def test_option_container_double_click():
     class MyModel(BaseModel):
         my_value: Literal["A", "B"]
 
-    app = MyApp(MyModel)
+    app = MyApp(MyModel, with_model_info=model_info)
 
     async with app.run_test() as pilot:
-        form = app.query_one(_Form)
+        form = app.query_one(Form)
         option_1, option_2 = app.query(".option_container").nodes
 
         await click_option_container(option_1, pilot)
@@ -48,7 +48,7 @@ async def test_checkbox_by_key(keys):
     app = MyApp(MyModel)
 
     async with app.run_test() as pilot:
-        form = app.query_one(_Form)
+        form = app.query_one(Form)
         option_1, option_2 = app.query(".option_container").nodes
 
         check_state(option_1, False)
@@ -61,3 +61,15 @@ async def test_checkbox_by_key(keys):
 
         check_state(option_1, True)
         assert form.obj == {"my_value": "A"}
+
+
+@pytest.mark.asyncio
+async def test_ok_form_incomplete():
+    class MyModel(BaseModel):
+        my_value: int
+
+    app = MyApp(MyModel)
+
+    async with app.run_test() as pilot:
+        await pilot.click("#ok")
+    assert True
