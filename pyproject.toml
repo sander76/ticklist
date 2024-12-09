@@ -5,9 +5,10 @@ requires = [ "hatchling" ]
 
 [project]
 name = "ticklist"
-version = "0.1.1"
-description = "Add your description here"
+version = "0.3.0"
+description = "Create textual forms based on Pydantic models."
 readme = "README.md"
+keywords = [ "cli", "forms", "pydantic", "textual" ]
 requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
@@ -16,14 +17,12 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 
-keywords = ['textual','cli','pydantic','forms']
 dependencies = [
   "pydantic>=2.10.2",
   "textual>=0.88",
 ]
 
-[project.urls]
-Repository = "https://github.com/sander76/clipstick"
+urls.Repository = "https://github.com/sander76/clipstick"
 
 [dependency-groups]
 dev = [

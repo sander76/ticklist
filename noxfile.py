@@ -27,6 +27,7 @@ pydantic_latest = version("pydantic")
 
 
 def uv_install(session: nox.Session) -> None:
+    """Install dependencies usig uv."""
     session.run_install(
         "uv",
         "sync",

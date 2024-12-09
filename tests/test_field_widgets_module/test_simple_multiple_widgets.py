@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 from tests.app_with_form import MyApp
 from tests.test_field_widgets_module import check_state, click_option_container
-from ticklist.form import _Form
+from ticklist.form import Form
 
 
 class LiteralModel(BaseModel):
@@ -78,7 +78,7 @@ class BooleanModel(BaseModel):
 async def test_initial_values(app, result, enabled):
     """Form object has default model value at startup."""
     async with app.run_test():
-        my_form = app.query_one(_Form)
+        my_form = app.query_one(Form)
         option_1, option_2 = app.query(".option_container").nodes
 
         check_state(option_1, enabled[0])
@@ -96,7 +96,7 @@ async def test_initial_values(app, result, enabled):
 )
 async def test_manual_input(app, value):
     async with app.run_test() as pilot:
-        my_form = app.query_one(_Form)
+        my_form = app.query_one(Form)
         option_1, option_2 = app.query(".option_container").nodes
 
         await click_option_container(option_1, pilot)

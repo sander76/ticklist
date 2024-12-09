@@ -9,7 +9,7 @@ from textual.app import ComposeResult
 from textual.geometry import Size
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widgets import Button, Input, Static
+from textual.widgets import Button, Input, Label, Static
 from typing_extensions import override
 
 from ticklist.types import NO_VALUE
@@ -31,7 +31,7 @@ class FieldWidget(Static, can_focus=False):
     DEFAULT_CSS = """
     FieldWidget {
         layout: horizontal;
-        margin-left: 5;
+        margin-left: 3;
     }
     Input {
         min-width: 40;
@@ -64,9 +64,14 @@ class FieldWidget(Static, can_focus=False):
             field_data: Field data for this widget.
         """
         self._key = field_data.key
+        self._label = field_data.label
         # super needs to become before the setting of a reactive value.
         super().__init__(classes="field_widget")
         self.value = field_data.value
+
+    @override
+    def compose(self) -> ComposeResult:
+        yield Label(self._label, classes="field_widget_label")
 
     def watch_value(self) -> None:
         """Watch the value property."""
@@ -76,10 +81,16 @@ class FieldWidget(Static, can_focus=False):
 class FieldWidgetForString(FieldWidget):
     """Input widget for strings."""
 
+    DEFAULT_CSS = """
+    Input {margin-left:0;}
+    """
+
     @override
     def compose(self) -> ComposeResult:
         yield Input(
-            value="" if self.value is NO_VALUE else str(self.value), classes="input"
+            value="" if self.value is NO_VALUE else str(self.value),
+            classes="input",
+            placeholder=self._label,
         )
 
     def on_input_changed(self, event: Input.Changed) -> None:
@@ -155,6 +166,7 @@ class FieldWidgetForModel(FieldWidget):
 
     @override
     def compose(self) -> ComposeResult:
+        yield Label(self._label, classes="field_widget_label")
         yield Button("edit", id="edit_button")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
