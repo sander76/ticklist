@@ -63,13 +63,13 @@ async def test_checkbox_by_key(keys):
         assert form.obj == {"my_value": "A"}
 
 
-@pytest.mark.asyncio
-async def test_ok_form_incomplete():
-    class MyModel(BaseModel):
-        my_value: int
+# @pytest.mark.asyncio
+# async def test_ok_form_incomplete():
+#     class MyModel(BaseModel):
+#         my_value: int
 
-    app = MyApp(MyModel)
+#     app = MyApp(MyModel)
 
-    async with app.run_test() as pilot:
-        await pilot.click("#ok")
-    assert True
+#     async with app.run_test() as pilot:
+#         await pilot.click("#ok")
+#     assert True

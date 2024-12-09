@@ -34,7 +34,7 @@ This model results in the following form:
 ```
 """
 
-from typing import Any, Collection, Generic, Literal, Type, TypeVar
+from typing import Any, Collection, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 from pydantic_core import ErrorDetails
@@ -211,22 +211,7 @@ class _OptionGroup(Static, can_focus=False):
 ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
-class ScreenResult(Generic[ModelType]):
-    """Returned when the form is closed."""
-
-    def __init__(self, model: ModelType, action: Literal["cancel", "ok"]):
-        """Init.
-
-        Args:
-            model: Model created by the form.
-                Either a new model, or the original model provided during instantiation.
-            action: Which action caused the form to close.
-        """
-        self.model = model
-        self.action = action
-
-
-class Form(Screen[ScreenResult[ModelType]]):
+class Form(Screen[ModelType]):
     """Pydantic form.
 
     Contains widgets for creating and editing pydantic objects.
@@ -392,20 +377,17 @@ class Form(Screen[ScreenResult[ModelType]]):
         self._instantiate()
 
         if event.button.id == "cancel":
-            if self._old_instance is not NO_VALUE:
-                self.dismiss(ScreenResult(self._old_instance, action="cancel"))
             self.dismiss()
         else:
-            if self._instance is NO_VALUE:
-                pass
-            self.dismiss(ScreenResult(self._instance, action="ok"))
+            assert self._instance is not NO_VALUE
+            self.dismiss(self._instance)
 
     @on(FieldWidgetForModel.EditModel)
     def _on_edit_model(self, event: FieldWidgetForModel.EditModel) -> None:
-        def form_close_callback(result: ScreenResult | None) -> None:  # type: ignore[type-arg]
+        def form_close_callback(result: BaseModel | None) -> None:
             if result is None:
                 return
-            event.widget.value = result.model
+            event.widget.value = result
 
         self.app.push_screen(
             Form(event.model, event.value, self._annotation_iterators),
