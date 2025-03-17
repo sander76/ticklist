@@ -418,7 +418,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.88.0"
+version = "2.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -426,14 +426,14 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/25/b7/601f94b4f4aca85e2d24c5d401e447ed9ab1aed710e811a1f7559c973031/textual-0.88.0.tar.gz", hash = "sha256:bf9cc3ec9d34957c361eabf739e59272295323478cc822633fb0a7b7cc2a0ac3", size = 1519716 }
+sdist = { url = "https://files.pythonhosted.org/packages/41/62/4af4689dd971ed4fb3215467624016d53550bff1df9ca02e7625eec07f8b/textual-2.1.2.tar.gz", hash = "sha256:aae3f9fde00c7440be00e3c3ac189e02d014f5298afdc32132f93480f9e09146", size = 1596600 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/89/ac433063e19c31a3692720354dc370fd71f83ddb69e1382fa5faec2586ed/textual-0.88.0-py3-none-any.whl", hash = "sha256:87a1085a403e3a95aa4b954c530d46947d830e9ad4b8c15490104c0b4a452b6a", size = 654963 },
+    { url = "https://files.pythonhosted.org/packages/07/81/9df1988c908cbba77f10fecb8587496b3dff2838d4510457877a521d87fd/textual-2.1.2-py3-none-any.whl", hash = "sha256:95f37f49e930838e721bba8612f62114d410a3019665b6142adabc14c2fb9611", size = 680148 },
 ]
 
 [[package]]
 name = "ticklist"
-version = "0.2.0"
+version = "0.4.1"
 source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
@@ -454,7 +454,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pydantic", specifier = ">=2.10.2" },
-    { name = "textual", specifier = ">=0.88" },
+    { name = "textual", specifier = ">=1" },
 ]
 
 [package.metadata.requires-dev]

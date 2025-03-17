@@ -136,9 +136,9 @@ class _Option(Static, can_focus=True):
     def render(self) -> str:
         """Render the checkbox."""
         if self.checked:
-            return "[X]"
+            return "\[X]"
         else:
-            return "[ ]"
+            return "\[ ]"
 
     @override
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
