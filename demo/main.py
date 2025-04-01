@@ -86,7 +86,7 @@ class MyApp(App):
         car = await self.app.push_screen_wait(frm)
 
         if car is not None:
-            return car.model
+            return car
         return None
 
     def _update_cars_view(self) -> None:
