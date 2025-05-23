@@ -70,3 +70,10 @@ def quality(session: nox.Session) -> None:
     session.run("pyproject-fmt", "pyproject.toml")
 
     session.run("mypy", "src", "noxfile.py")
+
+
+@nox.session
+def generate_readme(session: nox.Session) -> None:
+    """Generate the README.md file using cog."""
+    uv_install(session)
+    session.run("cog", "-r", "README.md")

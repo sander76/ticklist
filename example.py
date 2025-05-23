@@ -1,9 +1,9 @@
+from tkinter.tix import Form
+
 from pydantic import BaseModel
 from textual.app import App
 
 from ticklist.annotation_iterators import ANNOTATION_ITERATORS
-from ticklist.form import Form
-from ticklist.types import NO_VALUE, NOTHING
 
 
 class MyModel(BaseModel):
@@ -13,7 +13,7 @@ class MyModel(BaseModel):
 
 class MyApp(App):
     def on_mount(self) -> None:
-        frm = Form(MyModel, NO_VALUE, ANNOTATION_ITERATORS)
+        frm = Form(MyModel, None, ANNOTATION_ITERATORS)
         self.push_screen(frm)
 
 
