@@ -24,7 +24,7 @@ pip install ticklist
 
 ## Usage
 
-Here's a simple example of how to use Ticklist to create a form for a Pydantic model:
+A simple example of how to use Ticklist to create a form for a Pydantic model:
 
 ```python
 from pydantic import BaseModel
