@@ -4,5 +4,51 @@
 
 # Ticklist
 
-Create Textual forms based on Pydantic models.
+Ticklist is a Python library designed to create interactive forms based on Pydantic models using the Textual framework. It provides a seamless way to generate user interfaces for data entry and editing, leveraging the power of Pydantic for data validation and Textual for building rich, interactive applications.
 
+## Features
+
+- **Pydantic Integration**: Automatically generate forms based on Pydantic models.
+- **Textual Widgets**: Use Textual's widgets to create a responsive and interactive user interface.
+- **Annotation Handling**: Supports various Pydantic annotations, including `str`, `int`, `Enum`, `Literal`, `Union`, and more.
+- **Custom Annotations**: Define custom annotations to control the behavior and appearance of form fields.
+- **Validation**: Automatically validate user input using Pydantic's validation rules.
+
+## Installation
+
+You can install Ticklist using pip:
+
+```bash
+pip install ticklist
+```
+
+## Usage
+
+Here's a simple example of how to use Ticklist to create a form for a Pydantic model:
+
+```python
+from pydantic import BaseModel
+from ticklist import Form, ANNOTATION_ITERATORS
+from textual.app import App
+
+class MyModel(BaseModel):
+    name: str
+    age: int
+
+class MyApp(App):
+    def on_mount(self) -> None:
+        frm = Form(MyModel, None, ANNOTATION_ITERATORS)
+        self.push_screen(frm)
+
+if __name__ == "__main__":
+    app = MyApp()
+    app.run()
+```
+
+## Contributing
+
+Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
