@@ -1,6 +1,7 @@
 """Annotations.
 
-To be used inside the `Annotations` type annotation.
+Use these inside the `Annotated` part of your pydantic field to modify
+the associated widget.
 """
 
 from __future__ import annotations
@@ -13,8 +14,7 @@ from typing import Any, Collection, NotRequired, TypedDict
 class Label:
     """Label annotation.
 
-    to be used inside an `Annotation` type to indicate the label to be used
-    inside the widget.
+    Add a custom label to the associated widget.
     """
 
     value: str
@@ -28,11 +28,23 @@ class BooleanLabels:
     label_for_false: str
 
 
+@dataclass(frozen=True)
+class Multiline:
+    """A marker class for multiline string fields.
+
+    Args:
+        height: The height of the text area in rows. Defaults to 3.
+    """
+
+    height: int = 3
+
+
 class TickAnnotations(TypedDict):
     """All ticked annotations."""
 
     label: NotRequired[Label]
     boolean_labels: NotRequired[BooleanLabels]
+    multiline: NotRequired[Multiline]
 
 
 def to_tick_annotations(annotations: Collection[Any]) -> TickAnnotations:
@@ -44,4 +56,6 @@ def to_tick_annotations(annotations: Collection[Any]) -> TickAnnotations:
                 tick_annotations["label"] = anno
             case BooleanLabels():
                 tick_annotations["boolean_labels"] = anno
+            case Multiline():
+                tick_annotations["multiline"] = anno
     return tick_annotations

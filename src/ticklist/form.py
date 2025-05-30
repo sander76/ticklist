@@ -34,7 +34,7 @@ This model results in the following form:
 ```
 """
 
-from typing import Any, Collection, Type, TypeVar
+from typing import Any, Collection, Sequence, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 from pydantic_core import ErrorDetails
@@ -49,7 +49,10 @@ from textual.screen import Screen
 from textual.widgets import Button, Label, Pretty, Static
 from typing_extensions import override
 
-from ticklist.annotation_iterators import field_data_from_annotation
+from ticklist.annotation_iterators import (
+    ANNOTATION_ITERATORS,
+    field_data_from_annotation,
+)
 from ticklist.field_data import (
     FieldData,
 )
@@ -243,7 +246,7 @@ class Form(Screen[ModelType]):
         self,
         model: Type[ModelType],
         instance: ModelType | NOTHING,
-        annotation_iterators: Collection[AnnotationIterator],
+        annotation_iterators: Sequence[AnnotationIterator] | None = None,
         model_info: bool = False,
     ) -> None:
         """Init.
@@ -267,7 +270,7 @@ class Form(Screen[ModelType]):
         # is cancelled and you need to return the old values.
         self._old_instance = instance
 
-        self._annotation_iterators = annotation_iterators
+        self._annotation_iterators = annotation_iterators or ANNOTATION_ITERATORS
         self._model_info = model_info
         super().__init__()
 

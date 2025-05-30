@@ -18,6 +18,7 @@ from ticklist.field_data import (
     FieldDataForInt,
     FieldDataForLiteralValue,
     FieldDataForModel,
+    FieldDataForMultilineString,
     FieldDataForNoneValue,
     FieldDataForString,
 )
@@ -165,10 +166,32 @@ def str_type_iterator(
     metadata: ta.TickAnnotations,
 ) -> Iterable[tuple[FieldDataForString, ta.TickAnnotations]]:
     """Yield value for a string annotation."""
-    if isclass(annotation) and issubclass(annotation, str):
+    if (
+        isclass(annotation)
+        and issubclass(annotation, str)
+        and "multiline" not in metadata
+    ):
         _logger.debug("annotation: str %s", annotation)
         yield (
             FieldDataForString.parse(annotation, key, value, default, metadata),
+            metadata,
+        )
+
+
+def multiline_type_iterator(
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[FieldDataForMultilineString, ta.TickAnnotations]]:
+    """Yield value for a multiline string annotation."""
+    if isclass(annotation) and issubclass(annotation, str) and "multiline" in metadata:
+        _logger.debug("annotation: Multiline str %s", annotation)
+        yield (
+            FieldDataForMultilineString.parse(
+                annotation, key, value, default, metadata
+            ),
             metadata,
         )
 
@@ -280,6 +303,7 @@ ANNOTATION_ITERATORS: tuple[AnnotationIterator, ...] = (
     enum_type_iterator,
     enum_item_type_iterator,
     str_type_iterator,
+    multiline_type_iterator,
     int_type_iterator,
     union_type_iterator,
     model_type_iterator,

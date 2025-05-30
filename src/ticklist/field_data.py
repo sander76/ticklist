@@ -19,6 +19,7 @@ from ticklist.field_widgets import (
     FieldWidgetForFixedValue,
     FieldWidgetForInt,
     FieldWidgetForModel,
+    FieldWidgetForMultilineString,
     FieldWidgetForString,
 )
 from ticklist.types import NO_VALUE
@@ -201,6 +202,52 @@ class FieldDataForString(FieldData):
             value=_value,
             active=_active,
             label="manual input",
+        )
+
+
+class FieldDataForMultilineString(FieldData):
+    """Field data for a multiline string type."""
+
+    def __init__(
+        self,
+        annotation: Any,
+        key: str,
+        value: Any,
+        active: bool,
+        label: str,
+        height: int,
+    ):
+        """Init this instance."""
+        super().__init__(annotation, key, value, active, label)
+        self.height = height
+
+    @property
+    def field_widget(self) -> type[FieldWidget]:
+        """Associated FieldWidget."""
+        return FieldWidgetForMultilineString
+
+    @override
+    @classmethod
+    def parse(
+        cls,
+        annotation: Any,
+        key: str,
+        value: Any,
+        default: Any,
+        metadata: ta.TickAnnotations,
+    ) -> Self:
+        def _check(value: Any, annotation: Any) -> bool:
+            return isinstance(value, annotation)
+
+        _value, _active = cls._evaluate_values(annotation, default, value, _check)
+
+        return cls(
+            annotation=annotation,
+            key=key,
+            value=_value,
+            active=_active,
+            label="manual input",
+            height=metadata["multiline"].height,
         )
 
 

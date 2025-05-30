@@ -20,6 +20,7 @@ from ticklist.field_data import (
     FieldDataForInt,
     FieldDataForLiteralValue,
     FieldDataForModel,
+    FieldDataForMultilineString,
     FieldDataForNoneValue,
     FieldDataForString,
 )
@@ -94,6 +95,36 @@ def test_field_data_for_string():
             value="abc",
             active=True,
             label="manual input",
+        ),
+    )
+
+
+def test_field_data_for_multiline_string():
+    class MyStringModel(BaseModel):
+        multi_line: Annotated[str, ta.Multiline(3)] = "def"
+
+    key = "multi_line"
+    field_info = MyStringModel().model_fields[key]
+
+    items = list(
+        field_data_from_annotation(
+            annotation=field_info.annotation,
+            key=key,
+            value=NO_VALUE,
+            default=field_info.default,
+            annotation_iterators=ANNOTATION_ITERATORS,
+            metadata=field_info.metadata,
+        )
+    )
+    compare_items(
+        items,
+        FieldDataForMultilineString(
+            annotation=field_info.annotation,
+            key=key,
+            value="def",
+            active=True,
+            label="manual input",
+            height=3,
         ),
     )
 

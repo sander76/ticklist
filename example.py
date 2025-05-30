@@ -1,16 +1,29 @@
+from typing import Annotated
+
 from pydantic import BaseModel
-from ticklist import Form, ANNOTATION_ITERATORS
 from textual.app import App
 
-class MyModel(BaseModel):
-    name: str
-    age: int
+from ticklist.form import Form
+from ticklist.tick_annotations import Multiline
+from ticklist.types import NO_VALUE
 
-class MyApp(App):
+
+class Person(BaseModel):
+    """Define a form using a pydantic model."""
+
+    name: str
+    age: int = 10
+    notes: Annotated[str, Multiline()]
+
+
+class MyApp(App[None]):
     def on_mount(self) -> None:
-        frm = Form(MyModel, None, ANNOTATION_ITERATORS)
-        self.push_screen(frm)
+        def handle_form_result(result: Person | None) -> None:
+            self.exit(message=f"{result=!r}")
+
+        frm = Form(Person, NO_VALUE)
+        self.push_screen(frm, handle_form_result)
+
 
 if __name__ == "__main__":
-    app = MyApp()
-    app.run()
+    MyApp().run()

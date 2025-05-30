@@ -9,13 +9,16 @@ from textual.app import ComposeResult
 from textual.geometry import Size
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widgets import Button, Input, Label, Static
+from textual.widgets import Button, Input, Label, Static, TextArea
 from typing_extensions import override
 
 from ticklist.types import NO_VALUE
 
 if TYPE_CHECKING:
-    from ticklist.field_data import FieldData  # pragma: no cover
+    from ticklist.field_data import (  # pragma: no cover
+        FieldData,
+        FieldDataForMultilineString,
+    )
 
 
 class FieldWidget(Static, can_focus=False):
@@ -98,6 +101,39 @@ class FieldWidgetForString(FieldWidget):
         event.stop()
 
         self.value = event.value
+
+
+class FieldWidgetForMultilineString(FieldWidget):
+    """Input widget for multiline strings."""
+
+    DEFAULT_CSS = """
+    TextArea {
+        margin-left: 0;
+    }
+    """
+
+    def __init__(self, field_data: FieldDataForMultilineString) -> None:
+        """Initialize this class."""
+        super().__init__(field_data)
+        self._height = (
+            field_data.height + 2
+        )  # quick hack to compensate for border height of 2x1git
+
+    @override
+    def compose(self) -> ComposeResult:
+        ta = TextArea(
+            text="" if self.value is NO_VALUE else str(self.value),
+            classes="textarea",
+        )
+        ta.styles.height = self._height
+
+        yield ta
+
+    def on_text_area_changed(self, event: TextArea.Changed) -> None:
+        """Execute on input change."""
+        event.stop()
+
+        self.value = event.text_area.text
 
 
 class FieldWidgetForInt(FieldWidget):
