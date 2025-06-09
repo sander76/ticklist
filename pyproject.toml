@@ -5,7 +5,7 @@ requires = [ "hatchling" ]
 
 [project]
 name = "ticklist"
-version = "0.5.1"
+version = "0.6.0"
 description = "Create textual forms based on Pydantic models."
 readme = "README.md"
 keywords = [ "cli", "forms", "pydantic", "textual" ]
