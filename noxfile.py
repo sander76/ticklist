@@ -21,8 +21,8 @@ pythons = [
     if pv.startswith("Programming Language :: Python :: 3.")
 ]
 
-pydantic_oldest = "2.5"
 # keep this in sync with the pydantic dependency as defined in the pyproject.toml
+pydantic_oldest = "2.10.2"
 pydantic_latest = version("pydantic")
 
 
