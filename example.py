@@ -13,6 +13,8 @@ class Person(BaseModel):
     """Define a form using a pydantic model."""
 
     name: str
+    """Name of the person."""
+
     age: int = 10
     notes: Annotated[str, Multiline()]
     date_of_birth: datetime
