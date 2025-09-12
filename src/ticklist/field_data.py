@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
+from datetime import datetime
 from enum import Enum
 from typing import Any, Self
 
@@ -258,6 +259,38 @@ class FieldDataForInt(FieldData):
     def field_widget(self) -> type[FieldWidget]:
         """Associated FieldWidget."""
         return FieldWidgetForInt
+
+    @override
+    @classmethod
+    def parse(
+        cls,
+        annotation: Any,
+        key: str,
+        value: Any,
+        default: Any,
+        metadata: ta.TickAnnotations,
+    ) -> Self:
+        def _check(value: Any, annotation: Any) -> bool:
+            return isinstance(value, annotation)
+
+        _value, _active = cls._evaluate_values(annotation, default, value, _check)
+
+        return cls(
+            annotation=annotation,
+            key=key,
+            value=_value,
+            active=_active,
+            label="manual input",
+        )
+
+
+class FieldDataForDatetime(FieldData):
+    """Field data for a datetime type."""
+
+    @property
+    def field_widget(self) -> type[FieldWidget]:
+        """Associated FieldWidget."""
+        return FieldWidgetForString
 
     @override
     @classmethod

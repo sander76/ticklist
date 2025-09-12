@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel
@@ -14,6 +15,7 @@ class Person(BaseModel):
     name: str
     age: int = 10
     notes: Annotated[str, Multiline()]
+    date_of_birth: datetime
 
 
 class MyApp(App[None]):

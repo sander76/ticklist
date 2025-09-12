@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from types import NoneType
 from typing import Annotated, Literal
@@ -6,6 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from tests.conftest import compare_items
+from ticklist import annotation_iterators
 from ticklist import tick_annotations as ta
 from ticklist.annotation_iterators import (
     ANNOTATION_ITERATORS,
@@ -16,6 +18,7 @@ from ticklist.annotation_iterators import (
 from ticklist.field_data import (
     FieldData,
     FieldDataForBooleanValue,
+    FieldDataForDatetime,
     FieldDataForEnumValue,
     FieldDataForInt,
     FieldDataForLiteralValue,
@@ -190,6 +193,36 @@ def test_field_data_for_int():
             annotation=field_info.annotation,
             key=key,
             value=10,
+            active=True,
+            label="manual input",
+        ),
+    )
+
+
+def test_field_data_for_datetime():
+    class MyModel(BaseModel):
+        my_dt: datetime = datetime(2000, 1, 1)
+
+    key = "my_dt"
+
+    field_info = MyModel.model_fields[key]
+
+    items = list(
+        field_data_from_annotation(
+            annotation=field_info.annotation,
+            key=key,
+            value=NO_VALUE,
+            default=field_info.default,
+            annotation_iterators=ANNOTATION_ITERATORS,
+            metadata={},
+        )
+    )
+    compare_items(
+        items,
+        FieldDataForDatetime(
+            annotation=field_info.annotation,
+            key=key,
+            value=datetime(2000, 1, 1),
             active=True,
             label="manual input",
         ),

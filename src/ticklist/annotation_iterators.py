@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from enum import Enum
 from inspect import isclass
 from types import NoneType, UnionType
@@ -14,6 +15,7 @@ from ticklist import tick_annotations as ta
 from ticklist.field_data import (
     FieldData,
     FieldDataForBooleanValue,
+    FieldDataForDatetime,
     FieldDataForEnumValue,
     FieldDataForInt,
     FieldDataForLiteralValue,
@@ -154,6 +156,22 @@ def enum_item_type_iterator(
         _logger.debug("annotation: Enum value %s", annotation)
         yield (
             FieldDataForEnumValue.parse(annotation, key, value, default, metadata),
+            metadata,
+        )
+
+
+def datetime_type_iterator(
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[tuple[FieldDataForDatetime, ta.TickAnnotations]]:
+    """Yield value for a datetime annotation."""
+    if isclass(annotation) and issubclass(annotation, datetime):
+        _logger.debug("annotation: datetime %s", annotation)
+        yield (
+            FieldDataForDatetime.parse(annotation, key, value, default, metadata),
             metadata,
         )
 
@@ -302,6 +320,7 @@ ANNOTATION_ITERATORS: tuple[AnnotationIterator, ...] = (
     none_type_iterator,
     enum_type_iterator,
     enum_item_type_iterator,
+    datetime_type_iterator,
     str_type_iterator,
     multiline_type_iterator,
     int_type_iterator,
