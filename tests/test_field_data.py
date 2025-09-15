@@ -7,7 +7,6 @@ import pytest
 from pydantic import BaseModel
 
 from tests.conftest import compare_items
-from ticklist import annotation_iterators
 from ticklist import tick_annotations as ta
 from ticklist.annotation_iterators import (
     ANNOTATION_ITERATORS,
