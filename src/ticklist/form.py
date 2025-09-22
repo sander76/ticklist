@@ -330,6 +330,8 @@ class Form(Screen[ModelType]):
                 yield items[0].field_widget(items[0])
             else:
                 yield _OptionGroup(items)
+            if field_info.description:
+                yield Label(field_info.description)
 
         if self._model_info:
             # the current value of the object from which we are going to instantiate
