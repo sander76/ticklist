@@ -34,6 +34,7 @@ This model results in the following form:
 ```
 """
 
+from inspect import getdoc
 from typing import Any, Collection, Sequence, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -167,6 +168,7 @@ class _OptionGroup(Static, can_focus=False):
         # content-align: left middle;
         height: 100%;
     }
+    
     """
 
     def __init__(
@@ -240,6 +242,9 @@ class Form(Screen[ModelType]):
     .field_error {
         color: $error;
     }
+    .docstring {
+        margin-left: 3;
+    }
     """
 
     def __init__(
@@ -308,6 +313,8 @@ class Form(Screen[ModelType]):
     @override
     def compose(self) -> ComposeResult:
         yield Label(self._model.__name__, classes="title")
+        if _doc := getdoc(self._model):
+            yield Label(_doc)
         for field, field_info in self._model.model_fields.items():
             if self._instance is NO_VALUE:
                 value = NO_VALUE
@@ -316,6 +323,8 @@ class Form(Screen[ModelType]):
 
             # label showing the pydantic field/key.
             yield Label(field, classes="field_label", id=f"label_{field}")
+            if field_info.description:
+                yield Label(field_info.description, classes="docstring")
 
             items = field_data_from_annotation(
                 annotation=field_info.annotation,
@@ -330,8 +339,6 @@ class Form(Screen[ModelType]):
                 yield items[0].field_widget(items[0])
             else:
                 yield _OptionGroup(items)
-            if field_info.description:
-                yield Label(field_info.description)
 
         if self._model_info:
             # the current value of the object from which we are going to instantiate

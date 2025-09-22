@@ -1,5 +1,5 @@
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from tests.app_with_form import MyApp
 
@@ -16,6 +16,8 @@ def test_widgets(annotated_type, snap_compare):
 def test_docstrings(snap_compare):
     class MyModel(BaseModel):
         """This is my testing model."""
+
+        model_config = ConfigDict(use_attribute_docstrings=True)
 
         my_value: str
         """My own little value"""
