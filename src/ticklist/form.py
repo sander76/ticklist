@@ -34,7 +34,6 @@ This model results in the following form:
 ```
 """
 
-from inspect import getdoc
 from typing import Any, Collection, Sequence, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -313,7 +312,7 @@ class Form(Screen[ModelType]):
     @override
     def compose(self) -> ComposeResult:
         yield Label(self._model.__name__, classes="title")
-        if _doc := getdoc(self._model):
+        if _doc := self._model.__doc__:
             yield Label(_doc)
         for field, field_info in self._model.model_fields.items():
             if self._instance is NO_VALUE:
