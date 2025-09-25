@@ -254,6 +254,18 @@ def union_type_iterator(
             yield arg, metadata
 
 
+def list_type_iterator(
+    annotation: Any,
+    key: str,
+    value: Any,
+    default: Any,
+    metadata: ta.TickAnnotations,
+) -> Iterable[Any]:
+    """Yield values for a list annotation."""
+    if isinstance(annotation, list):
+        _logger.debug("annotation: list %s", annotation)
+
+
 def model_type_iterator(
     annotation: Any,
     key: str,

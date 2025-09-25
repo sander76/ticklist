@@ -81,6 +81,12 @@ class FieldWidget(Static, can_focus=False):
         self.post_message(FieldWidget.ValueChanged(self._key, self.value))
 
 
+# class FieldWidgetForList(FieldWidget):
+#     @override
+#     def compose(self)->ComposeResult:
+#         # the self.value is a list containing other
+
+
 class FieldWidgetForString(FieldWidget):
     """Input widget for strings."""
 
@@ -171,6 +177,46 @@ class FieldWidgetForFixedValue(FieldWidget):
     @override
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         return 1
+
+
+class FieldWidgetForList(FieldWidget):
+    """A Field widget for a list.
+
+    A list item will have its own modal window.
+    """
+
+    class EditList(Message):
+        """Emitted when we want to edit the list."""
+
+        def __init__(self, model: type[list], value: list, widget: FieldWidget) -> None:
+            """Init.
+
+            Args:
+                model: The encountered model.
+                value: The instantiated model or Nothing.
+                widget: This widget.
+            """
+            self.model = model
+            self.value = value
+            self.widget = widget
+            super().__init__()
+
+    @override
+    def __init__(self, field_data: FieldData) -> None:
+        self._label = field_data.label
+        self._model = field_data.model
+        super().__init__(field_data)
+
+    @override
+    def compose(self) -> ComposeResult:
+        yield Label(self._label, classes="field_widget_label")
+        yield Button("edit", id="edit_button")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Run on button press."""
+        event.stop()
+
+        self.post_message(FieldWidgetForList.EditList(self._model, self.value, self))
 
 
 class FieldWidgetForModel(FieldWidget):

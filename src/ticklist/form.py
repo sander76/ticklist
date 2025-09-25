@@ -58,6 +58,7 @@ from ticklist.field_data import (
 )
 from ticklist.field_widgets import (
     FieldWidget,
+    FieldWidgetForList,
     FieldWidgetForModel,
 )
 from ticklist.types import NO_VALUE, NOTHING, AnnotationIterator
@@ -396,3 +397,46 @@ class Form(Screen[ModelType]):
             Form(event.model, event.value, self._annotation_iterators),
             form_close_callback,
         )
+
+    @on(FieldWidgetForList.EditList)
+    def _on_edit_list(self, event: FieldWidgetForList.EditList) -> None:
+        def form_close_callback(result: BaseModel | None) -> None:
+            if result is None:
+                return
+            event.widget.value = result
+
+        self.app.push_screen(
+            Form(event.model, event.value, self._annotation_iterators),
+            form_close_callback,
+        )
+
+
+ListT = TypeVar("ListT")
+
+
+class ListScreen(Screen[ListT]):
+    def __init__(
+        self,
+        model: Type[list],
+        instance: list | NOTHING,
+        annotation_iterators: Sequence[AnnotationIterator] | None = None,
+        model_info: bool = False,
+    ) -> None:
+        """Init.
+
+        Args:
+            model: The list object.
+            instance: An optional instance of this list containing (default) vlaues to be used.
+            annotation_iterators: An annotation iterator evaluates an annotation and
+                either results in a field data object or allows to continue iteration.
+            model_info: Mostly for debugging purposes. Shows creation of arguments
+                while entering data.
+        """
+        self._model = model
+        self.obj: list = []
+        self._instance = instance
+
+        self._old_instance = instance
+        self._annotation_iterators = annotation_iterators or ANNOTATION_ITERATORS
+
+        super().__init__()
